@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -16,7 +17,8 @@ import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
 import { AuthAccountResponseDto } from './dtos/authAccount-response.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { Account } from '@prisma/client';
-import { AccountResposeDto } from './dtos/account-response.dto';
+import { CommonAccountResposeDto } from '../../common/dtos/common-account-response.dto';
+import { CommonChatResposeDto } from 'src/common/dtos/common-chat-response.dto';
 
 @Injectable()
 export class AccountService {
@@ -25,6 +27,7 @@ export class AccountService {
     private readonly jwtService: JwtService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+  private logger = new Logger();
 
   async createAccountNonce() {
     const nonce = Math.random().toString(36).substring(2);
@@ -77,12 +80,14 @@ export class AccountService {
       });
 
       if (!account) {
-        account = await this.prismaService.account.create({
-          data: {
-            id: uuidv4(),
-            walletAddress: publicKey,
-          },
-        });
+        account = (await this.prismaService.$transaction(async (tx) => {
+          return await tx.account.create({
+            data: {
+              id: uuidv4(),
+              walletAddress: publicKey,
+            },
+          });
+        })) as Account;
       }
 
       return new CommonResponseDto(
@@ -92,14 +97,35 @@ export class AccountService {
         ),
       );
     } catch (err) {
-      console.error(err);
+      this.logger.error(err);
       throw new InternalServerErrorException('Internal Server Error');
     }
   }
 
   getMyAccount(account: Account) {
     return new CommonResponseDto(
-      new AccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(account.id, account.walletAddress),
+    );
+  }
+
+  async getMyChats(account: Account) {
+    const chats = await this.prismaService.chatRoomAccount.findMany({
+      where: {
+        accountId: account.id,
+      },
+      include: {
+        chatRoom: true,
+      },
+    });
+
+    return chats.map(
+      (chat) =>
+        new CommonChatResposeDto(
+          chat.id,
+          chat.chatRoom.name,
+          chat.chatRoom.description,
+          chat.chatRoom.createdAt,
+        ),
     );
   }
 
@@ -115,22 +141,24 @@ export class AccountService {
     }
 
     return new CommonResponseDto(
-      new AccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(account.id, account.walletAddress),
     );
   }
 
   // 이하 코드는 디버그용 코드입니다.
   async createAdminAccount() {
-    const account = await this.prismaService.account.create({
-      data: {
-        id: uuidv4(),
-        walletAddress: 'admin',
-        isAdmin: true,
-      },
-    });
+    const account = (await this.prismaService.$transaction(async (tx) => {
+      return await tx.account.create({
+        data: {
+          id: uuidv4(),
+          walletAddress: 'admin',
+          isAdmin: true,
+        },
+      });
+    })) as Account;
 
     return new CommonResponseDto(
-      new AccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(account.id, account.walletAddress),
     );
   }
 

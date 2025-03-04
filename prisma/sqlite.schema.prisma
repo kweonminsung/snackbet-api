@@ -30,7 +30,7 @@ model Account {
 model ChatRoom {
   id          String   @id
   name        String
-  description String
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -112,7 +112,7 @@ model BettingWhiteList {
 model BettingOption {
   id          String   @id
   name        String
-  description String
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

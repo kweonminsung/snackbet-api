@@ -2,10 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Post,
-  Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -22,12 +21,14 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post('auth/nonce')
+  @HttpCode(201)
   @ApiOperation({ summary: '로그인 nonce 생성' })
   async createAccountNonce() {
     return await this.accountService.createAccountNonce();
   }
 
   @Post('auth')
+  @HttpCode(201)
   @ApiOperation({ summary: '로그인' })
   @ApiBody({ type: AuthAccountRequestDto })
   async authAccount(@Body() dto: AuthAccountRequestDto) {
@@ -42,6 +43,14 @@ export class AccountController {
     return await this.accountService.getMyAccount(currentAccount);
   }
 
+  @Get('me/chats')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 채팅방 목록 조회' })
+  @ApiBearerAuth('access-token')
+  async getMyChats(@CurrentAccount() currentAccount: Account) {
+    return await this.accountService.getMyChats(currentAccount);
+  }
+
   @Get(':id')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtAuthGuard)
@@ -53,6 +62,7 @@ export class AccountController {
 
   // 이하 코드는 디버그용 코드입니다.
   @Post('debug/admin')
+  @HttpCode(201)
   @ApiOperation({ summary: '디버그용 관리자 계정 생성' })
   async createAdminAccount() {
     return await this.accountService.createAdminAccount();

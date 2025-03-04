@@ -30,7 +30,7 @@ model Account {
 model ChatRoom {
   id          String   @id @mysql.VarChar(255)
   name        String   @mysql.VarChar(255)
-  description String   @mysql.Text
+  description String?  @mysql.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -112,7 +112,7 @@ model BettingWhiteList {
 model BettingOption {
   id          String   @id @mysql.VarChar(255)
   name        String   @mysql.VarChar(255)
-  description String   @mysql.Text
+  description String?  @mysql.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

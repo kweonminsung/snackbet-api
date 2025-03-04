@@ -1,4 +1,4 @@
-export class AccountResposeDto {
+export class CommonAccountResposeDto {
   id: string;
   walletAddress: string;
 

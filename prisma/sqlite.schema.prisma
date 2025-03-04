@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource sqlite {
+  provider = "sqlite"
+  url      = env("DB_URL")
+}
+
+model Account {
+  id            String   @id
+  email         String   @unique
+  password      String
+  walletAddress String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  createdChatRooms     ChatRoom[]
+  joinedChatRooms      ChatRoomAccount[]
+  messages             Message[]
+  createdBettings      Betting[]
+  participatedBettings AccountBetting[]
+  BettingWhiteList     BettingWhiteList[]
+
+  @@map("account")
+}
+
+model ChatRoom {
+  id          String   @id
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creatorId String?
+  creator   Account? @relation(fields: [creatorId], references: [id])
+
+  messages     Message[]
+  participants ChatRoomAccount[]
+
+  @@map("chat_room")
+}
+
+model ChatRoomAccount {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  @@map("chat_room_account")
+}
+
+model Message {
+  id        String   @id
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  senderId   String?
+  sender     Account? @relation(fields: [senderId], references: [id])
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  @@map("message")
+}
+
+enum GovernanceType {
+  PUBLIC
+  PRIVATE
+}
+
+model Betting {
+  id             String         @id
+  name           String
+  ended          Boolean        @default(false)
+  endDate        DateTime?
+  governanceType GovernanceType
+  eventSource    String?
+  isSettled      Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  creatorId String
+  creator   Account @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  options      BettingOption[]
+  participants AccountBetting[]
+  whiteList    BettingWhiteList[]
+
+  @@map("betting")
+}
+
+model BettingWhiteList {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  bettingId String
+  Betting   Betting @relation(fields: [bettingId], references: [id], onDelete: Cascade)
+
+  @@map("betting_white_list")
+}
+
+model BettingOption {
+  id          String   @id
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bettingId String
+  betting   Betting @relation(fields: [bettingId], references: [id], onDelete: Cascade)
+
+  participants AccountBetting[]
+
+  @@map("betting_option")
+}
+
+model AccountBetting {
+  id        String    @id
+  amount    Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  accountId String
+  account   Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  bettingId String
+  betting   Betting       @relation(fields: [bettingId], references: [id], onDelete: Cascade)
+  optionId  String
+  option    BettingOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@map("account_betting")
+}

@@ -12,9 +12,7 @@ datasource mysql {
 
 model Account {
   id            String   @id @mysql.VarChar(255)
-  email         String   @unique @mysql.VarChar(255)
-  password      String   @mysql.VarChar(255)
-  walletAddress String   @mysql.VarChar(255)
+  walletAddress String   @unique @mysql.VarChar(255)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

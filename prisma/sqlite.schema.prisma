@@ -12,9 +12,7 @@ datasource sqlite {
 
 model Account {
   id            String   @id
-  email         String   @unique
-  password      String
-  walletAddress String
+  walletAddress String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

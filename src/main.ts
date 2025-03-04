@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { PrismaService } from './config/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -35,10 +34,6 @@ async function bootstrap() {
   // Env settings
   const appConfig = app.get(ConfigService);
   console.info(`=> Running as ${appConfig.get('app.env')}`);
-
-  // Config for Prisma
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
 
   // Config for Swagger
   if (appConfig.get('app.env') === 'development') {

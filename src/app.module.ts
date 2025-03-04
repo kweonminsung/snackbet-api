@@ -3,7 +3,7 @@ import { AppConfigModule } from './config/app/app.module';
 import { AccountModule } from './modules/account/account.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { BetModule } from './modules/bet/bet.module';
-import { CacheModule } from '@nestjs/cache-manager';
+import { HealthzModule } from './modules/healthz/healthz.module';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     AccountModule,
     ChatModule,
     BetModule,
-    CacheModule.register(),
+    HealthzModule,
   ],
 })
 export class AppModule {}

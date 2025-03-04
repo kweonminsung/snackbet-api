@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,10 +12,11 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import bs58 from 'bs58';
 import { PublicKey } from '@solana/web3.js';
 import nacl from 'tweetnacl';
-import { Response } from 'express';
 import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
-import { AccountResponseDto } from './dtos/account-response.dto';
+import { AuthAccountResponseDto } from './dtos/authAccount-response.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { Account } from '@prisma/client';
+import { AccountResposeDto } from './dtos/account-response.dto';
 
 @Injectable()
 export class AccountService {
@@ -32,7 +34,7 @@ export class AccountService {
     return nonce;
   }
 
-  async authAccount(dto: AuthAccountRequestDto, res: Response) {
+  async authAccount(dto: AuthAccountRequestDto) {
     const { publicKey, signature, nonce } = dto;
 
     const cachedNonce = await this.cacheManager.get(nonce);
@@ -68,8 +70,6 @@ export class AccountService {
       }
 
       // 여기서 verified == true라면 => 해당 publicKey의 개인키 소유자가 맞음
-      // 이 시점에서 JWT 발급, 세션 생성 등의 로직을 추가하면 됨
-
       let account = await this.prismaService.account.findUnique({
         where: {
           walletAddress: publicKey,
@@ -85,17 +85,69 @@ export class AccountService {
         });
       }
 
-      res
-        .cookie(
-          'snackbet_web_token',
+      return new CommonResponseDto(
+        new AuthAccountResponseDto(
+          account.id,
           this.jwtService.sign({ sub: account.id }),
-          { sameSite: 'none', secure: true, httpOnly: true },
-        )
-        .send(new CommonResponseDto(new AccountResponseDto(account.id)));
-      return;
+        ),
+      );
     } catch (err) {
       console.error(err);
       throw new InternalServerErrorException('Internal Server Error');
     }
+  }
+
+  getMyAccount(account: Account) {
+    return new CommonResponseDto(
+      new AccountResposeDto(account.id, account.walletAddress),
+    );
+  }
+
+  async getAccount(id: string) {
+    const account = await this.prismaService.account.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    return new CommonResponseDto(
+      new AccountResposeDto(account.id, account.walletAddress),
+    );
+  }
+
+  // 이하 코드는 디버그용 코드입니다.
+  async createAdminAccount() {
+    const account = await this.prismaService.account.create({
+      data: {
+        id: uuidv4(),
+        walletAddress: 'admin',
+        isAdmin: true,
+      },
+    });
+
+    return new CommonResponseDto(
+      new AccountResposeDto(account.id, account.walletAddress),
+    );
+  }
+
+  async authAdminAccount(dto: AuthAccountRequestDto) {
+    const { publicKey, signature, nonce } = dto;
+
+    let account = await this.prismaService.account.findUnique({
+      where: {
+        walletAddress: publicKey,
+      },
+    });
+
+    return new CommonResponseDto(
+      new AuthAccountResponseDto(
+        account.id,
+        this.jwtService.sign({ sub: account.id }),
+      ),
+    );
   }
 }

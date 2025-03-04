@@ -40,6 +40,15 @@ async function bootstrap() {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Snackbet API')
       .setDescription('The API description for Snackbet')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          name: 'JWT',
+          in: 'header',
+        },
+        'access-token',
+      )
       .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api', app, document);

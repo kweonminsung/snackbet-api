@@ -15,6 +15,7 @@ model Account {
   walletAddress String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  isAdmin       Boolean  @default(false)
 
   createdChatRooms     ChatRoom[]
   joinedChatRooms      ChatRoomAccount[]

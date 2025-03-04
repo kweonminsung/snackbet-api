@@ -1,8 +1,20 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
 import { AuthAccountRequestDto } from './dtos/authAccount-request.dto';
-import { Response } from 'express';
+import { JwtAuthGuard } from './jwt/jwt.guard';
+import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
+import { Account } from '@prisma/client';
+import { IsAdminGuard } from './jwt/isAdmin.guard';
 
 @ApiTags('account')
 @Controller('account')
@@ -18,7 +30,38 @@ export class AccountController {
   @Post('auth')
   @ApiOperation({ summary: '로그인' })
   @ApiBody({ type: AuthAccountRequestDto })
-  async authAccount(@Body() dto: AuthAccountRequestDto, @Res() res: Response) {
-    return await this.accountService.authAccount(dto, res);
+  async authAccount(@Body() dto: AuthAccountRequestDto) {
+    return await this.accountService.authAccount(dto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 계정 정보 조회' })
+  @ApiBearerAuth('access-token')
+  async getMyAccount(@CurrentAccount() currentAccount: Account) {
+    return await this.accountService.getMyAccount(currentAccount);
+  }
+
+  @Get(':id')
+  @UseGuards(IsAdminGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '회원 정보 조회' })
+  async getAccount(@Param('id') id: string) {
+    return await this.accountService.getAccount(id);
+  }
+
+  // 이하 코드는 디버그용 코드입니다.
+  @Post('debug/admin')
+  @ApiOperation({ summary: '디버그용 관리자 계정 생성' })
+  async createAdminAccount() {
+    return await this.accountService.createAdminAccount();
+  }
+
+  @Post('debug/admin/auth')
+  @ApiOperation({ summary: '디버그용 관리자 계정 로그인' })
+  @ApiBody({ type: AuthAccountRequestDto })
+  async authAdminAccount(@Body() dto: AuthAccountRequestDto) {
+    return await this.accountService.authAdminAccount(dto);
   }
 }

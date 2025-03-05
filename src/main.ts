@@ -13,7 +13,6 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
-  app.setGlobalPrefix('v1');
 
   // GlobalPipes
   app.useGlobalPipes(

@@ -15,6 +15,7 @@ import { GetChatMessagesQueryDto } from './dtos/getChatMessages-query.dto';
 import { GetChatMessagesResponseDto } from './dtos/getChatMessages-response.dto';
 import { CommonSimpleAccountResposeDto } from 'src/common/dtos/common-account-response.dto';
 import { CommonMessageResposeDto } from 'src/common/dtos/common-message-response.dto';
+import { CreateChatMessageRequestDto } from './dtos/createChatMessage-request.dto';
 
 @Injectable()
 export class ChatService {
@@ -172,6 +173,12 @@ export class ChatService {
       ),
     );
   }
+
+  async createChatMessage(
+    id: string,
+    account: Account,
+    createChatMessageRequestDto: CreateChatMessageRequestDto,
+  ) {}
 
   async deleteChat(id: string, account: Account) {
     const chat = await this.prismaService.chatRoom.findUnique({

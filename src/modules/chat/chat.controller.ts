@@ -11,14 +11,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../account/jwt/jwt.guard';
 import { CreateChatRequestDto } from './dtos/createChat-request';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
 import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
 import { GetChatMessagesQueryDto } from './dtos/getChatMessages-query.dto';
+import { CreateChatMessageRequestDto } from './dtos/createChatMessage-request.dto';
 
+@ApiTags('chat')
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
@@ -63,6 +65,23 @@ export class ChatController {
       currentAccount,
       getChatMessagesQueryDto,
     );
+  }
+
+  @Post(':id/messages')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '채팅방 메시지 생성' })
+  @ApiBearerAuth('access-token')
+  async createChatMessage(
+    @Param('id') id: string,
+    @CurrentAccount() currentAccount: Account,
+    @Body() createChatMessageRequestDto: CreateChatMessageRequestDto,
+  ) {
+    await this.chatService.createChatMessage(
+      id,
+      currentAccount,
+      createChatMessageRequestDto,
+    );
+    return new CommonResponseDto();
   }
 
   @Delete(':id')

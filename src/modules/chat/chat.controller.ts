@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../account/jwt/jwt.guard';
+import { JwtAuthGuard } from '../../config/auth/jwt/jwt.guard';
 import { CreateChatRequestDto } from './dtos/createChat-request';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
@@ -51,6 +51,17 @@ export class ChatController {
     return await this.chatService.getChat(id, currentAccount);
   }
 
+  @Get(':id/accounts')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '채팅방 참여자 조회' })
+  @ApiBearerAuth('access-token')
+  async getChatAccounts(
+    @Param('id') id: string,
+    @CurrentAccount() currentAccount: Account,
+  ) {
+    return await this.chatService.getChatAccounts(id, currentAccount);
+  }
+
   @Get(':id/messages')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '채팅방 메시지 조회' })
@@ -77,7 +88,6 @@ export class ChatController {
     @Body() createChatMessageRequestDto: CreateChatMessageRequestDto,
   ) {
     await this.chatService.createChatMessage(
-      id,
       currentAccount,
       createChatMessageRequestDto,
     );

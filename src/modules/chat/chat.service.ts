@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -16,10 +18,16 @@ import { GetChatMessagesResponseDto } from './dtos/getChatMessages-response.dto'
 import { CommonSimpleAccountResposeDto } from 'src/common/dtos/common-account-response.dto';
 import { CommonMessageResposeDto } from 'src/common/dtos/common-message-response.dto';
 import { CreateChatMessageRequestDto } from './dtos/createChatMessage-request.dto';
+import { ChatGateway } from './chat.gateway';
+import { GetChatAccountsResponseDto } from './dtos/getChatAccounts.response.dto';
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    @Inject(forwardRef(() => ChatGateway))
+    private readonly chatGateWay: ChatGateway,
+  ) {}
   private logger = new Logger();
 
   async createChat(
@@ -95,6 +103,50 @@ export class ChatService {
     );
   }
 
+  async getChatAccounts(id: string, account: Account) {
+    const chat = await this.prismaService.chatRoom.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!chat) {
+      throw new BadRequestException('Chat not found');
+    }
+
+    const isMember = await this.prismaService.chatRoomAccount.findFirst({
+      where: {
+        chatRoomId: chat.id,
+        accountId: account.id,
+      },
+    });
+    if (isMember === null) {
+      throw new UnauthorizedException('You are not a member of this chat');
+    }
+
+    const chatRoomAccounts = await this.prismaService.chatRoomAccount.findMany({
+      where: {
+        chatRoomId: chat.id,
+      },
+      include: {
+        account: true,
+      },
+    });
+
+    return new CommonResponseDto(
+      new GetChatAccountsResponseDto(
+        id,
+        chatRoomAccounts.map(
+          (chatRoomAccount) =>
+            new CommonSimpleAccountResposeDto(
+              chatRoomAccount.account.id,
+              chatRoomAccount.account.username,
+            ),
+        ),
+      ),
+    );
+  }
+
   async getChatMessages(
     id: string,
     account: Account,
@@ -146,15 +198,6 @@ export class ChatService {
         : {}),
     });
 
-    const accountIds = [...new Set(messages.map((msg) => msg.senderId))];
-    const accounts = await this.prismaService.account.findMany({
-      where: {
-        id: {
-          in: accountIds,
-        },
-      },
-    });
-
     return new CommonResponseDto(
       new GetChatMessagesResponseDto(
         id,
@@ -167,18 +210,62 @@ export class ChatService {
               msg.senderId,
             ),
         ),
-        accounts.map(
-          (acc) => new CommonSimpleAccountResposeDto(acc.id, acc.username),
-        ),
       ),
     );
   }
 
   async createChatMessage(
-    id: string,
     account: Account,
     createChatMessageRequestDto: CreateChatMessageRequestDto,
-  ) {}
+  ) {
+    const { chatId, content } = createChatMessageRequestDto;
+
+    const chat = await this.prismaService.chatRoom.findUnique({
+      where: {
+        id: chatId,
+      },
+    });
+
+    if (!chat) {
+      throw new BadRequestException('Chat not found');
+    }
+
+    const isMember = await this.prismaService.chatRoomAccount.findFirst({
+      where: {
+        chatRoomId: chat.id,
+        accountId: account.id,
+      },
+    });
+    if (isMember === null) {
+      throw new UnauthorizedException('You are not a member of this chat');
+    }
+
+    try {
+      const newMessage = await this.prismaService.$transaction(async (tx) => {
+        return await tx.message.create({
+          data: {
+            id: uuidv4(),
+            content,
+            chatRoomId: chat.id,
+            senderId: account.id,
+          },
+        });
+      });
+
+      this.chatGateWay.sendChatMessage(
+        chatId,
+        newMessage.id,
+        newMessage.content,
+        newMessage.createdAt,
+        newMessage.senderId,
+      );
+
+      return newMessage;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException('Failed to create message');
+    }
+  }
 
   async deleteChat(id: string, account: Account) {
     const chat = await this.prismaService.chatRoom.findUnique({

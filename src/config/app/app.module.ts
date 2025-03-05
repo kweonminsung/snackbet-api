@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import configuration from './configuration';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
       ignoreEnvFile: process.env.APP_ENV === 'production',
     }),
     PrismaModule,
+    AuthModule,
   ],
 })
 export class AppConfigModule {}

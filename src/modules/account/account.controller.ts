@@ -11,10 +11,10 @@ import {
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
 import { AuthAccountRequestDto } from './dtos/authAccount-request.dto';
-import { JwtAuthGuard } from './jwt/jwt.guard';
+import { JwtAuthGuard } from '../../config/auth/jwt/jwt.guard';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
-import { IsAdminGuard } from './jwt/isAdmin.guard';
+import { IsAdminGuard } from '../../config/auth/jwt/isAdmin.guard';
 import { UpdateAccountRequestDto } from './dtos/updateAccount-request.dto';
 import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
 

@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Account } from '@prisma/client';
 import { CommonAccountResposeDto } from '../../common/dtos/common-account-response.dto';
 import { CommonChatResposeDto } from 'src/common/dtos/common-chat-response.dto';
+import { UpdateAccountRequestDto } from './dtos/updateAccount-request.dto';
 
 @Injectable()
 export class AccountService {
@@ -104,8 +105,35 @@ export class AccountService {
 
   getMyAccount(account: Account) {
     return new CommonResponseDto(
-      new CommonAccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(
+        account.id,
+        account.username,
+        account.walletAddress,
+      ),
     );
+  }
+
+  async updateMyAccount(
+    updateAccountRequestDto: UpdateAccountRequestDto,
+    account: Account,
+  ) {
+    const { username } = updateAccountRequestDto;
+
+    try {
+      await this.prismaService.$transaction(async (tx) => {
+        await tx.account.update({
+          where: {
+            id: account.id,
+          },
+          data: {
+            username,
+          },
+        });
+      });
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException('Failed to update account');
+    }
   }
 
   async getMyChats(account: Account) {
@@ -141,7 +169,11 @@ export class AccountService {
     }
 
     return new CommonResponseDto(
-      new CommonAccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(
+        account.id,
+        account.username,
+        account.walletAddress,
+      ),
     );
   }
 
@@ -151,6 +183,7 @@ export class AccountService {
       return await tx.account.create({
         data: {
           id: uuidv4(),
+          username: 'administator',
           walletAddress: 'admin',
           isAdmin: true,
         },
@@ -158,7 +191,11 @@ export class AccountService {
     })) as Account;
 
     return new CommonResponseDto(
-      new CommonAccountResposeDto(account.id, account.walletAddress),
+      new CommonAccountResposeDto(
+        account.id,
+        account.username,
+        account.walletAddress,
+      ),
     );
   }
 

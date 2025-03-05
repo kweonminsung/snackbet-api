@@ -12,6 +12,7 @@ datasource mysql {
 
 model Account {
   id            String   @id @mysql.VarChar(255)
+  username      String   @default("anonymous") @mysql.VarChar(255)
   walletAddress String   @unique @mysql.VarChar(255)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

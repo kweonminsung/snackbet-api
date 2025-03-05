@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
@@ -15,6 +16,8 @@ import { JwtAuthGuard } from '../account/jwt/jwt.guard';
 import { CreateChatRequestDto } from './dtos/createChat-request';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
+import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
+import { GetChatMessagesQueryDto } from './dtos/getChatMessages-query.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -50,23 +53,41 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '채팅방 메시지 조회' })
   @ApiBearerAuth('access-token')
-  async getChatMessages(@Param('id') id: string) {
-    return await this.chatService.getChatMessages(id);
+  async getChatMessages(
+    @Param('id') id: string,
+    @CurrentAccount() currentAccount: Account,
+    @Query() getChatMessagesQueryDto: GetChatMessagesQueryDto,
+  ) {
+    return await this.chatService.getChatMessages(
+      id,
+      currentAccount,
+      getChatMessagesQueryDto,
+    );
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '채팅방 삭제' })
   @ApiBearerAuth('access-token')
-  async deleteChat(@Param('id') id: string) {
-    return await this.chatService.deleteChat(id);
+  async deleteChat(
+    @Param('id') id: string,
+    @CurrentAccount() currentAccount: Account,
+  ) {
+    await this.chatService.deleteChat(id, currentAccount);
+    return new CommonResponseDto();
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '채팅방 수정' })
   @ApiBearerAuth('access-token')
-  async updateChat(@Param('id') id: string) {
-    return await this.chatService.updateChat(id);
+  async updateChat(
+    @Param('id') id: string,
+    @CurrentAccount() currentAccount: Account,
+    @Body() updateChatRequestDto: CreateChatRequestDto,
+  ) {
+    await this.chatService.updateChat(id, currentAccount, updateChatRequestDto);
+
+    return new CommonResponseDto();
   }
 }

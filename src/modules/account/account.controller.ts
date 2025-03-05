@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,8 @@ import { JwtAuthGuard } from './jwt/jwt.guard';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
 import { IsAdminGuard } from './jwt/isAdmin.guard';
+import { UpdateAccountRequestDto } from './dtos/updateAccount-request.dto';
+import { CommonResponseDto } from 'src/common/dtos/common-response.dto';
 
 @ApiTags('account')
 @Controller('account')
@@ -41,6 +44,22 @@ export class AccountController {
   @ApiBearerAuth('access-token')
   async getMyAccount(@CurrentAccount() currentAccount: Account) {
     return await this.accountService.getMyAccount(currentAccount);
+  }
+
+  @Put('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 계정 정보 수정' })
+  @ApiBearerAuth('access-token')
+  async updateMyAccount(
+    @CurrentAccount() currentAccount: Account,
+    @Body() updateAccountRequestDto: UpdateAccountRequestDto,
+  ) {
+    await this.accountService.updateMyAccount(
+      updateAccountRequestDto,
+      currentAccount,
+    );
+
+    return new CommonResponseDto();
   }
 
   @Get('me/chats')

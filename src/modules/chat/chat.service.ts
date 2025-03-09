@@ -64,6 +64,8 @@ export class ChatService {
           newChat.name,
           newChat.description,
           newChat.createdAt,
+          null,
+          null,
         ),
       );
     } catch (err) {
@@ -88,7 +90,20 @@ export class ChatService {
         chatRoomId: chat.id,
         accountId: account.id,
       },
+      include: {
+        chatRoom: {
+          include: {
+            messages: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
+      },
     });
+
     if (isMember === null) {
       throw new UnauthorizedException('You are not a member of this chat');
     }
@@ -99,6 +114,8 @@ export class ChatService {
         chat.name,
         chat.description,
         chat.createdAt,
+        isMember.chatRoom.messages[0]?.content,
+        isMember.chatRoom.messages[0]?.createdAt,
       ),
     );
   }

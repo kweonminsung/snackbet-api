@@ -20,6 +20,11 @@ import { Account } from '@prisma/client';
 import { CommonAccountResposeDto } from '../../common/dtos/common-account-response.dto';
 import { CommonChatResposeDto } from 'src/common/dtos/common-chat-response.dto';
 import { UpdateAccountRequestDto } from './dtos/updateAccount-request.dto';
+import { CommonAccountBettingResponseDto } from 'src/common/dtos/common-accountBetting-response.dto';
+import { GetMyChatsResponseDto } from './dtos/getMyChats-response.dto';
+import { GetMyBettingsResponseDto } from './dtos/getMyBettings-response.dto';
+import { CommonBettingResponseDto } from 'src/common/dtos/common-betting-response.dto';
+import { CommonOptionResponseDto } from 'src/common/dtos/common-option-response.dto';
 
 @Injectable()
 export class AccountService {
@@ -142,18 +147,72 @@ export class AccountService {
         accountId: account.id,
       },
       include: {
-        chatRoom: true,
+        chatRoom: {
+          include: {
+            messages: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+          },
+        },
       },
     });
 
-    return chats.map(
-      (chat) =>
-        new CommonChatResposeDto(
-          chat.id,
-          chat.chatRoom.name,
-          chat.chatRoom.description,
-          chat.chatRoom.createdAt,
+    return new CommonResponseDto(
+      new GetMyChatsResponseDto(
+        chats.map(
+          (chat) =>
+            new CommonChatResposeDto(
+              chat.id,
+              chat.chatRoom.name,
+              chat.chatRoom.description,
+              chat.chatRoom.createdAt,
+              chat.chatRoom.messages[0]?.content,
+              chat.chatRoom.messages[0]?.createdAt,
+            ),
         ),
+      ),
+    );
+  }
+
+  async getMyBettings(account: Account) {
+    const bettings = await this.prismaService.accountBetting.findMany({
+      where: {
+        accountId: account.id,
+        deletedAt: null,
+      },
+      include: {
+        betting: true,
+        option: true,
+      },
+    });
+
+    return new CommonResponseDto(
+      new GetMyBettingsResponseDto(
+        bettings.map(
+          (betting) =>
+            new CommonAccountBettingResponseDto(
+              betting.amount,
+              betting.accountId,
+              new CommonBettingResponseDto(
+                betting.betting.id,
+                betting.betting.name,
+                betting.betting.description,
+                betting.betting.createdAt,
+                betting.betting.isEnded,
+                betting.betting.endDate,
+                betting.betting.isSettled,
+              ),
+              new CommonOptionResponseDto(
+                betting.option.id,
+                betting.option.name,
+                betting.option.description,
+              ),
+            ),
+        ),
+      ),
     );
   }
 

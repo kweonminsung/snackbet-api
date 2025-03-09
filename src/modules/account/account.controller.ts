@@ -70,6 +70,14 @@ export class AccountController {
     return await this.accountService.getMyChats(currentAccount);
   }
 
+  @Get('me/bets')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '내 배팅 목록 조회' })
+  @ApiBearerAuth('access-token')
+  async getMyBets(@CurrentAccount() currentAccount: Account) {
+    return await this.accountService.getMyBettings(currentAccount);
+  }
+
   @Get(':id')
   @UseGuards(IsAdminGuard)
   @UseGuards(JwtAuthGuard)

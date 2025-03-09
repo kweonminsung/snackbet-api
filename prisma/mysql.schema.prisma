@@ -79,7 +79,8 @@ enum GovernanceType {
 model Betting {
   id             String         @id @mysql.VarChar(255)
   name           String         @mysql.VarChar(255)
-  ended          Boolean        @default(false)
+  description    String?        @mysql.Text
+  isEnded        Boolean        @default(false)
   endDate        DateTime?
   governanceType GovernanceType
   eventSource    String?

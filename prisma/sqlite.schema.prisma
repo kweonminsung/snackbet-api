@@ -79,7 +79,8 @@ enum GovernanceType {
 model Betting {
   id             String         @id
   name           String
-  ended          Boolean        @default(false)
+  description    String?
+  isEnded        Boolean        @default(false)
   endDate        DateTime?
   governanceType GovernanceType
   eventSource    String?

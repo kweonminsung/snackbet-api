@@ -5,6 +5,7 @@ import { JwtAuthGuard } from 'src/config/auth/jwt/jwt.guard';
 import { CreateBettingRequestDto } from './dtos/createBetting-request.dto';
 import { CurrentAccount } from 'src/common/decorators/current-account.decorator';
 import { Account } from '@prisma/client';
+import { CreateAccountBettingRequestDto } from './dtos/createAccountBetting-request.dto';
 
 @ApiTags('betting')
 @UseGuards(JwtAuthGuard)
@@ -33,5 +34,20 @@ export class BettingController {
     @CurrentAccount() currentAccount: Account,
   ) {
     return this.bettingService.getBetting(id, currentAccount);
+  }
+
+  @Post(':id')
+  @ApiOperation({ summary: '배팅 참여' })
+  @ApiBearerAuth('access-token')
+  async createAccountBetting(
+    @Param('id') id: string,
+    @Body() createAccountBettingRequestDto: CreateAccountBettingRequestDto,
+    @CurrentAccount() currentAccount: Account,
+  ) {
+    return this.bettingService.createAccountBetting(
+      id,
+      currentAccount,
+      createAccountBettingRequestDto,
+    );
   }
 }

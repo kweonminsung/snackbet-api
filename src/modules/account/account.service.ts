@@ -165,7 +165,7 @@ export class AccountService {
         chats.map(
           (chat) =>
             new CommonChatResposeDto(
-              chat.id,
+              chat.chatRoom.id,
               chat.chatRoom.name,
               chat.chatRoom.description,
               chat.chatRoom.createdAt,

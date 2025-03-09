@@ -8,29 +8,29 @@ export enum GetChatMessagesSortByOptions {
 }
 
 export enum GetChatMessagesOrderByOptions {
-  ASC = 'ASC',
-  DESC = 'DESC',
+  ASC = 'asc',
+  DESC = 'desc',
 }
 
 export class GetChatMessagesQueryDto {
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   lastMessageId?: string; // 커서 기반 페이징을 위한 마지막 메시지 ID
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   limit?: number = 20; // 한 번에 불러올 메시지 개수
 
-  @ApiProperty({ enum: GetChatMessagesSortByOptions })
+  @ApiProperty({ enum: GetChatMessagesSortByOptions, required: false })
   @IsOptional()
   @IsEnum(GetChatMessagesSortByOptions)
   sortBy?: GetChatMessagesSortByOptions = GetChatMessagesSortByOptions.DEFAULT;
 
-  @ApiProperty({ enum: GetChatMessagesOrderByOptions })
+  @ApiProperty({ enum: GetChatMessagesOrderByOptions, required: false })
   @IsOptional()
-  @IsEnum(GetChatMessagesSortByOptions)
+  @IsEnum(GetChatMessagesOrderByOptions)
   orderBy?: GetChatMessagesOrderByOptions = GetChatMessagesOrderByOptions.DESC;
 }

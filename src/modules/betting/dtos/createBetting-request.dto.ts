@@ -20,7 +20,7 @@ export class CreateOptionRequestDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   description?: string;
@@ -37,23 +37,23 @@ export class CreateBettingRequestDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   endDate?: Date;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   eventSource?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsEnum(GovernanceType)
   governanceType: GovernanceType;

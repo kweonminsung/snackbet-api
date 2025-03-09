@@ -20,15 +20,14 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    // origin: ['http://localhost:3000'],
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
   // Helmet settings
   app.use(helmet());
-
-  // Logger
-  app.useLogger(app.get(Logger));
 
   // Env settings
   const appConfig = app.get(ConfigService);

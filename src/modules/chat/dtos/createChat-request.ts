@@ -7,7 +7,7 @@ export class CreateChatRequestDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   description?: string;

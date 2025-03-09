@@ -40,6 +40,7 @@ model ChatRoom {
 
   messages     Message[]
   participants ChatRoomAccount[]
+  bettings     Betting[]
 
   @@map("chat_room")
 }
@@ -88,8 +89,10 @@ model Betting {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  creatorId String
-  creator   Account @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId  String
+  creator    Account  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   options      BettingOption[]
   participants AccountBetting[]

@@ -1,3 +1,5 @@
+import { CommonOptionResponseDto } from './common-option-response.dto';
+
 export class CommonBettingResponseDto {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export class CommonBettingResponseDto {
   isEnded: boolean;
   endDate?: Date;
   isSettled: boolean;
+  options: CommonOptionResponseDto[];
 
   constructor(
     id: string,
@@ -15,6 +18,7 @@ export class CommonBettingResponseDto {
     isEnded: boolean,
     endDate: Date | null,
     isSettled: boolean,
+    options: CommonOptionResponseDto[],
   ) {
     this.id = id;
     this.name = name;
@@ -23,5 +27,6 @@ export class CommonBettingResponseDto {
     this.isEnded = isEnded;
     this.endDate = endDate;
     this.isSettled = isSettled;
+    this.options = options;
   }
 }

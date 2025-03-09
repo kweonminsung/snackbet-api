@@ -184,7 +184,11 @@ export class AccountService {
         deletedAt: null,
       },
       include: {
-        betting: true,
+        betting: {
+          include: {
+            options: true,
+          },
+        },
         option: true,
       },
     });
@@ -204,6 +208,14 @@ export class AccountService {
                 betting.betting.isEnded,
                 betting.betting.endDate,
                 betting.betting.isSettled,
+                betting.betting.options.map(
+                  (option) =>
+                    new CommonOptionResponseDto(
+                      option.id,
+                      option.name,
+                      option.description,
+                    ),
+                ),
               ),
               new CommonOptionResponseDto(
                 betting.option.id,

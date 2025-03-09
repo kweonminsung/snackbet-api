@@ -19,7 +19,7 @@ export class BettingController {
     @Body() createBettingRequestDto: CreateBettingRequestDto,
     @CurrentAccount() currentAccount: Account,
   ) {
-    return this.bettingService.createBet(
+    return this.bettingService.createBetting(
       currentAccount,
       createBettingRequestDto,
     );
@@ -32,6 +32,6 @@ export class BettingController {
     @Param('id') id: string,
     @CurrentAccount() currentAccount: Account,
   ) {
-    return this.bettingService.getBet(id, currentAccount);
+    return this.bettingService.getBetting(id, currentAccount);
   }
 }
